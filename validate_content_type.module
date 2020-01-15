@@ -1,0 +1,37 @@
+<?php
+
+use Drupal\Core\Datetime\DrupalDateTime;
+
+function validate_content_type_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id)
+{
+    $node_types = \Drupal\node\Entity\NodeType::loadMultiple();
+    foreach ($node_types as $node_type) {
+        $content_name = $node_type->id();
+        if ($form_id == 'node_' . $content_name . '_form') {
+            $form['#validate'][] = '_form_validation_published_date';
+        }
+    }
+}
+function _form_validation_published_date(&$form, \Drupal\Core\Form\FormStateInterface $form_state)
+{
+    $created_date = $form_state->getValue('created')[0]['value'];
+    $created_date = getCreated_day($created_date);
+    if (isPrime($created_date)) {
+        $form_state->setErrorByName('created', t('Please set Author On day is a prime number'));
+    }
+}
+function getCreated_day($created_date)
+{
+    $date = new DrupalDateTime($created_date);
+    return $date->format('d');
+}
+function isPrime($number)
+{
+    if ($number < 2)
+        return false;
+    for ($i = 2; $i <= $number / 2; $i++) {
+        if ($number % $i == 0)
+            return false;
+    }
+    return true;
+}
